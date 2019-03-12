@@ -15,7 +15,7 @@ default_handlers = {
 }
 
 
-def resolve_refs(spec, store=None, handlers=None):
+def resolve_refs(spec, store=None, handlers=None, base_uri=''):
     """
     Resolve JSON references like {"$ref": <some URI>} in a spec.
     Optionally takes a store, which is a mapping from reference URLs to a
@@ -24,11 +24,15 @@ def resolve_refs(spec, store=None, handlers=None):
     spec = deepcopy(spec)
     store = store or {}
     handlers = handlers or default_handlers
-    resolver = RefResolver('', spec, store, handlers=handlers)
+    resolver = RefResolver(base_uri, spec, store, handlers=handlers)
 
     def _do_resolve(node):
         if isinstance(node, collections.Mapping) and '$ref' in node:
-            path = node['$ref'][2:].split("/")
+            ref = node['$ref']
+            if ref[:2] == "//":
+                path = ref[2:].split("/")
+            else:
+                path = ref.split("/")
             try:
                 # resolve known references
                 node.update(deep_get(spec, path))
