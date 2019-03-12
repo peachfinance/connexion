@@ -8,6 +8,8 @@ from openapi_spec_validator.handlers import UrlHandler
 
 from .utils import deep_get
 
+import os.path
+
 default_handlers = {
     'http': UrlHandler('http'),
     'https': UrlHandler('https'),
@@ -15,7 +17,7 @@ default_handlers = {
 }
 
 
-def resolve_refs(spec, store=None, handlers=None, base_uri=''):
+def resolve_refs(spec, store=None, external_refs={}, handlers=None, base_uri=''):
     """
     Resolve JSON references like {"$ref": <some URI>} in a spec.
     Optionally takes a store, which is a mapping from reference URLs to a
@@ -26,13 +28,14 @@ def resolve_refs(spec, store=None, handlers=None, base_uri=''):
     handlers = handlers or default_handlers
     resolver = RefResolver(base_uri, spec, store, handlers=handlers)
 
+    base_path = os.path.split(base_uri)[0]
     def _do_resolve(node):
         if isinstance(node, collections.Mapping) and '$ref' in node:
             ref = node['$ref']
             if ref[:2] == "//":
-                path = ref[2:].split("/")
-            else:
-                path = ref.split("/")
+                del ref[:2]
+            path = ref.split("/")
+            name = ref.split("#")[0]
             try:
                 # resolve known references
                 node.update(deep_get(spec, path))
@@ -41,6 +44,9 @@ def resolve_refs(spec, store=None, handlers=None, base_uri=''):
             except KeyError:
                 # resolve external references
                 with resolver.resolving(node['$ref']) as resolved:
+                    full_uri = os.path.join(base_path, name)
+                    if full_uri in resolver.store:
+                        external_refs[name] = str(resolver.store[full_uri])
                     return resolved
         elif isinstance(node, collections.Mapping):
             for k, v in node.items():

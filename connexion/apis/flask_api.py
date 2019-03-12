@@ -39,6 +39,13 @@ class FlaskApi(AbstractAPI):
                                     endpoint_name,
                                     lambda: flask.jsonify(self.specification.raw))
 
+        for refname in self.specification.external_refs.keys():
+            endpoint_name = "{name}_refspec_json".format(name=refname.replace('/','_').replace('.', '_'))
+            refspec = str(self.specification.external_refs[refname])
+            self.blueprint.add_url_rule(refname,
+                                        endpoint_name,
+                                        lambda x=refspec: flask.jsonify(x))
+
     def add_openapi_yaml(self):
         """
         Adds spec yaml to {base_path}/swagger.yaml

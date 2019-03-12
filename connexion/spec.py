@@ -36,11 +36,12 @@ class Specification(collections_abc.Mapping):
     def __init__(self, raw_spec, spec_url=None):
         self._raw_spec = copy.deepcopy(raw_spec)
         self._set_defaults(raw_spec)
+        self._external_refs = {}
         if spec_url:
             self._validate_spec(raw_spec, spec_url=spec_url)
         else:
             self._validate_spec(raw_spec)
-        self._spec = resolve_refs(raw_spec, base_uri=spec_url)
+        self._spec = resolve_refs(raw_spec, base_uri=spec_url, external_refs=self._external_refs)
 
     @classmethod
     @abc.abstractmethod
@@ -59,6 +60,10 @@ class Specification(collections_abc.Mapping):
 
     def get_operation(self, path, method):
         return deep_get(self._spec, ["paths", path, method])
+
+    @property
+    def external_refs(self):
+        return self._external_refs
 
     @property
     def raw(self):
