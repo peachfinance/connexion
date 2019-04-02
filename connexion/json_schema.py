@@ -47,6 +47,7 @@ def resolve_refs(spec, store=None, external_refs={}, handlers=None, base_uri='')
                     full_uri = os.path.join(base_path, name)
                     if full_uri in resolver.store:
                         external_refs[name] = str(resolver.store[full_uri])
+                    _do_resolve(resolved)
                     return resolved
         elif isinstance(node, collections.Mapping):
             for k, v in node.items():
