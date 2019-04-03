@@ -4,7 +4,7 @@ from copy import deepcopy
 from jsonschema import Draft4Validator, RefResolver, _utils
 from jsonschema.exceptions import RefResolutionError, ValidationError  # noqa
 from jsonschema.validators import extend
-from openapi_spec_validator.handlers import UrlHandler
+from .openapi_spec_validator.handlers import UrlHandler
 
 from .utils import deep_get
 

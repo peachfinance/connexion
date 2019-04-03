@@ -5,7 +5,7 @@ import pathlib
 import jinja2
 import six
 import yaml
-from openapi_spec_validator.exceptions import OpenAPIValidationError
+from .openapi_spec_validator.exceptions import OpenAPIValidationError
 from six.moves.urllib.parse import urlsplit
 
 from .exceptions import InvalidSpecification
@@ -208,7 +208,7 @@ class Swagger2Specification(Specification):
 
     @classmethod
     def _validate_spec(cls, spec, spec_url=None):
-        from openapi_spec_validator import validate_v2_spec as validate_spec
+        from ..openapi_spec_validator import validate_v2_spec as validate_spec
         try:
             if spec_url:
                 validate_spec(spec, spec_url=spec_url)
@@ -236,7 +236,7 @@ class OpenAPISpecification(Specification):
 
     @classmethod
     def _validate_spec(cls, spec, spec_url=None):
-        from openapi_spec_validator import validate_v3_spec as validate_spec
+        from .openapi_spec_validator import validate_v3_spec as validate_spec
         try:
             if spec_url:
                 validate_spec(spec, spec_url=spec_url)
