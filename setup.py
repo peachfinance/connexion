@@ -29,7 +29,6 @@ install_requires = [
     'inflection>=0.3.1',
     'pathlib>=1.0.1; python_version < "3.4"',
     'typing>=3.6.1; python_version < "3.6"',
-    'openapi-spec-validator>=0.2.4',
 ]
 
 swagger_ui_require = 'swagger-ui-bundle>=0.0.2'
