@@ -4,9 +4,11 @@ from copy import deepcopy
 from jsonschema import Draft4Validator, RefResolver, _utils
 from jsonschema.exceptions import RefResolutionError, ValidationError  # noqa
 from jsonschema.validators import extend
-from openapi_spec_validator.handlers import UrlHandler
+from .openapi_spec_validator.handlers import UrlHandler
 
 from .utils import deep_get
+
+import os.path
 
 default_handlers = {
     'http': UrlHandler('http'),
@@ -15,7 +17,7 @@ default_handlers = {
 }
 
 
-def resolve_refs(spec, store=None, handlers=None):
+def resolve_refs(spec, store=None, external_refs={}, handlers=None, base_uri=''):
     """
     Resolve JSON references like {"$ref": <some URI>} in a spec.
     Optionally takes a store, which is a mapping from reference URLs to a
@@ -24,11 +26,16 @@ def resolve_refs(spec, store=None, handlers=None):
     spec = deepcopy(spec)
     store = store or {}
     handlers = handlers or default_handlers
-    resolver = RefResolver('', spec, store, handlers=handlers)
+    resolver = RefResolver(base_uri, spec, store, handlers=handlers)
 
+    base_path = os.path.split(base_uri)[0]
     def _do_resolve(node):
         if isinstance(node, collections.Mapping) and '$ref' in node:
-            path = node['$ref'][2:].split("/")
+            ref = node['$ref']
+            if ref[:2] == "//":
+                del ref[:2]
+            path = ref.split("/")
+            name = ref.split("#")[0]
             try:
                 # resolve known references
                 node.update(deep_get(spec, path))
@@ -37,6 +44,10 @@ def resolve_refs(spec, store=None, handlers=None):
             except KeyError:
                 # resolve external references
                 with resolver.resolving(node['$ref']) as resolved:
+                    full_uri = os.path.join(base_path, name)
+                    if full_uri in resolver.store:
+                        external_refs[name] = str(resolver.store[full_uri])
+                    _do_resolve(resolved)
                     return resolved
         elif isinstance(node, collections.Mapping):
             for k, v in node.items():
