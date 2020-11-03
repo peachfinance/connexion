@@ -35,6 +35,21 @@ and therefore HEAD requests will be handled by the ``operationId`` specified
 under GET in the specification. If both methods are supported,
 ``connexion.request.method`` can be used to determine which request was made.
 
+By default, Connexion strictly enforces the presence of a handler 
+function for any path defined in your specification. Because of this, adding
+new paths without implementing a corresponding handler function will produce 
+runtime errors and your application will not start. To allow new paths to be 
+added to your specification, e.g. in an API design first workflow, set the 
+``resolver_error`` to configure Connexion to provide an error response for 
+paths that are not yet implemented:
+
+.. code-block:: python
+
+    app = connexion.FlaskApp(__name__)
+    app.add_api('swagger.yaml', resolver_error=501)
+
+.. code-block:: yaml
+
 Automatic Routing
 -----------------
 
@@ -71,12 +86,21 @@ the endpoints in your specification:
           # Implied operationId: api.foo.copy
        delete:
           # Implied operationId: api.foo.delete
+     '/foo/{id}/bar':
+       get:
+          # Implied operationId: api.foo.bar.search
+     '/foo/{id}/bar/{name}':
+       get:
+          # Implied operationId: api.foo.bar.get
+          # Handler signature: `def get(id, name): ...`
 
 ``RestyResolver`` will give precedence to any ``operationId``
 encountered in the specification. It will also respect
 ``x-swagger-router-controller``. You may import and extend
 ``connexion.resolver.Resolver`` to implement your own ``operationId``
 (and function) resolution algorithm.
+Note that when using multiple parameters in the path, they will be
+collected and all passed to the endpoint handlers.
 
 Automatic Routing with MethodViewResolver
 -------------------------------------------
@@ -266,6 +290,18 @@ can provide it when adding the API to your application:
 .. code-block:: python
 
     app.add_api('my_api.yaml', base_path='/1.0')
+
+Swagger UI path
+---------------
+
+Swagger UI is available at ``/ui/`` by default.
+
+You can choose another path through options:
+
+.. code-block:: python
+
+    options = {'swagger_url': '/'}
+    app = connexion.App(__name__, options=options)
 
 Swagger JSON
 ------------

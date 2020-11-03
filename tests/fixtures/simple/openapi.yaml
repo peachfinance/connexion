@@ -150,6 +150,105 @@ paths:
       responses:
         '204':
           description: empty
+  /exploded-deep-object-param:
+    get:
+      summary: Returns dict response
+      description: Returns dict response
+      operationId: fakeapi.hello.test_exploded_deep_object_param
+      parameters:
+        - name: id
+          required: true
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            additionalProperties: false
+            properties:
+              foo:
+                type: string
+              fooint:
+                type: integer
+              fooboo:
+                type: boolean
+              foo4:
+                type: string
+                default: blubb
+      responses:
+        '200':
+          description: object response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  foo:
+                    type: string
+                  foo4:
+                    type: string
+  /exploded-deep-object-param-additional-properties:
+    get:
+      summary: Returns dict response with flexible properties
+      description: Returns dict response with flexible properties
+      operationId: fakeapi.hello.test_exploded_deep_object_param_additional_properties
+      parameters:
+        - name: id
+          required: false
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+      responses:
+        '200':
+          description: object response
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: string
+  /nested-exploded-deep-object-param:
+    get:
+      summary: Returns nested dict response
+      description: Returns nested dict response
+      operationId: fakeapi.hello.test_nested_exploded_deep_object_param
+      parameters:
+        - name: id
+          required: true
+          in: query
+          style: deepObject
+          explode: true
+          schema:
+            type: object
+            properties:
+              foo:
+                type: object
+                properties:
+                  foo2:
+                    type: string
+                  foo3:
+                    type: string
+                    default: blubb
+              foofoo:
+                type: string
+      responses:
+        '200':
+          description: object response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  foo:
+                    type: object
+                    properties:
+                      foo2:
+                        type: string
+                      foo3:
+                        type: string
   /test-redirect-endpoint:
     get:
       summary: Tests handlers returning flask.Response objects
@@ -179,6 +278,24 @@ paths:
               $ref: '#/components/schemas/new_stack'
               default:
                 image_version: default_image
+  /test-nested-additional-properties:
+    post:
+      summary: Test if nested additionalProperties are cast
+      operationId: fakeapi.hello.test_nested_additional_properties
+      responses:
+        '200':
+          description: OK
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nested:
+                  type: object
+                  properties: {}
+                  additionalProperties:
+                    type: boolean
   /test-default-integer-body:
     post:
       summary: Test if default integer body param is passed to handler.
@@ -242,6 +359,19 @@ paths:
       responses:
         '200':
           description: OK
+  /test_apikey_query_parameter_validation:
+    get:
+      operationId: fakeapi.hello.test_apikey_query_parameter_validation
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+      security:
+        - api_key: []
+      responses:
+        '200':
+          description: OK
   /test_required_query_param:
     get:
       operationId: fakeapi.hello.test_required_query_param
@@ -273,7 +403,8 @@ paths:
                     type: string
             encoding:
               items:
-                style: simple
+                style: form
+                explode: false
       responses:
         200:
           description: OK
@@ -308,7 +439,8 @@ paths:
         - name: items
           in: query
           description: An comma separated array of items
-          style: simple
+          style: form
+          explode: false
           schema:
             type: array
             default: ["squash", "banana"]
@@ -326,7 +458,7 @@ paths:
         - name: items
           in: query
           description: An comma separated array of items
-          style: csv
+          style: form
           explode: true
           schema:
             type: array
@@ -951,33 +1083,63 @@ paths:
     servers:
       - url: http://localhost
     parameters:
-      - $ref: "#/components/parameters/OptionalName"
+      - $ref: "#/components/parameters/Name"
     get:
       operationId: fakeapi.hello.get_add_operation_on_http_methods_only
-      responses: {}
+      responses:
+        default:
+          description: ''
     put:
       operationId: fakeapi.hello.put_add_operation_on_http_methods_only
-      responses: {}
+      responses:
+        default:
+          description: ''
     post:
       operationId: fakeapi.hello.post_add_operation_on_http_methods_only
-      responses: {}
+      responses:
+        default:
+          description: ''
     delete:
       operationId: fakeapi.hello.delete_add_operation_on_http_methods_only
-      responses: {}
+      responses:
+        default:
+          description: ''
     options:
       operationId: fakeapi.hello.options_add_operation_on_http_methods_only
-      responses: {}
+      responses:
+        default:
+          description: ''
     head:
       operationId: fakeapi.hello.head_add_operation_on_http_methods_only
-      responses: {}
+      responses:
+        default:
+          description: ''
     patch:
       operationId: fakeapi.hello.patch_add_operation_on_http_methods_only
-      responses: {}
+      responses:
+        default:
+          description: ''
     trace:
       operationId: fakeapi.hello.trace_add_operation_on_http_methods_only
-      responses: {}
-    
-
+      responses:
+        default:
+          description: ''
+  /forward:
+    post:
+      operationId: fakeapi.hello.forward
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: >
+            The response containing the same data as were present in request body.
+          content:
+            application/json:
+              schema:
+                type: object
 
 servers:
   - url: http://localhost:{port}/{basePath}
@@ -1021,10 +1183,16 @@ components:
       required:
         - image_version
   parameters:
-    OptionalName:
+    Name:
       name: name
       in: path
       description: Name of the person to greet.
-      required: false
+      required: true
       schema:
         type: string
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: apikey
+      in: query
+      x-apikeyInfoFunc: fakeapi.hello.apikey_info

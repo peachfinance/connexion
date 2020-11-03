@@ -1,7 +1,6 @@
 import abc
 import logging
 
-import six
 from connexion.operations.secure import SecureOperation
 
 from ..decorators.metrics import UWSGIMetricsCollector
@@ -22,8 +21,7 @@ VALIDATOR_MAP = {
 }
 
 
-@six.add_metaclass(abc.ABCMeta)
-class AbstractOperation(SecureOperation):
+class AbstractOperation(SecureOperation, metaclass=abc.ABCMeta):
 
     """
     An API routes requests to an Operation by a (path, method) pair.
@@ -74,7 +72,7 @@ class AbstractOperation(SecureOperation):
         :param pythonic_params: When True CamelCase parameters are converted to snake_case and an underscore is appended
         to any shadowed built-ins
         :type pythonic_params: bool
-        :param uri_parser_class: class to use for uri parseing
+        :param uri_parser_class: class to use for uri parsing
         :type uri_parser_class: AbstractURIParser
         :param pass_context_arg_name: If not None will try to inject the request context to the function using this
         name.
@@ -199,7 +197,7 @@ class AbstractOperation(SecureOperation):
                     logger.error("Function argument '{}' not defined in specification".format(key))
                 else:
                     logger.debug('%s is a %s', key, query_defn)
-                    res[key] = self._get_val_from_param(value, query_defn)
+                    res.update({key: self._get_val_from_param(value, query_defn)})
         return res
 
     @abc.abstractmethod
@@ -221,11 +219,11 @@ class AbstractOperation(SecureOperation):
         kwargs = {}
         path_defns = {p["name"]: p for p in self.parameters if p["in"] == "path"}
         for key, value in path_params.items():
-            key = sanitize(key)
+            sanitized_key = sanitize(key)
             if key in path_defns:
-                kwargs[key] = self._get_val_from_param(value, path_defns[key])
+                kwargs[sanitized_key] = self._get_val_from_param(value, path_defns[key])
             else:  # Assume path params mechanism used for injection
-                kwargs[key] = value
+                kwargs[sanitized_key] = value
         return kwargs
 
     @abc.abstractproperty
