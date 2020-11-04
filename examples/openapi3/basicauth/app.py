@@ -28,6 +28,10 @@ def basic_auth(username, password, required_scopes=None):
     return info
 
 
+def dummy_func(token):
+    return None
+
+
 def get_secret(user) -> str:
     return "You are {user} and the secret is 'wbevuec'".format(user=user)
 

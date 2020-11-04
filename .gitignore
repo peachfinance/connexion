@@ -11,6 +11,6 @@ htmlcov/
 *.swp
 .tox/
 .idea/
-.vscode/
-venv/
-src/
+.kdev4/
+connexion.kdev4
+connexion.py

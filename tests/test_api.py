@@ -1,11 +1,10 @@
 # coding: utf-8
 
 import pathlib
-import os
 import tempfile
 
 import pytest
-from unittest.mock import MagicMock
+from mock import MagicMock
 from yaml import YAMLError
 
 from connexion import FlaskApi
@@ -106,29 +105,30 @@ def test_invalid_schema_file_structure():
 
 
 def test_invalid_encoding():
-    with tempfile.NamedTemporaryFile(mode='wb', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode='wb') as f:
         f.write(u"swagger: '2.0'\ninfo:\n  title: Foo 整\n  version: v1\npaths: {}".encode('gbk'))
-    FlaskApi(pathlib.Path(f.name), base_path="/api/v1.0")
-    os.unlink(f.name)
+        f.flush()
+        FlaskApi(pathlib.Path(f.name), base_path="/api/v1.0")
 
 
 def test_use_of_safe_load_for_yaml_swagger_specs():
     with pytest.raises(YAMLError):
-        with tempfile.NamedTemporaryFile(delete=False) as f:
+        with tempfile.NamedTemporaryFile() as f:
             f.write('!!python/object:object {}\n'.encode())
-        try:
-            FlaskApi(pathlib.Path(f.name), base_path="/api/v1.0")
-            os.unlink(f.name)
-        except InvalidSpecification:
-            pytest.fail("Could load invalid YAML file, use yaml.safe_load!")
+            f.flush()
+            try:
+                FlaskApi(pathlib.Path(f.name), base_path="/api/v1.0")
+            except InvalidSpecification:
+                pytest.fail("Could load invalid YAML file, use yaml.safe_load!")
 
 
 def test_validation_error_on_completely_invalid_swagger_spec():
-    with tempfile.NamedTemporaryFile(delete=False) as f:
-        f.write('[1]\n'.encode())
     with pytest.raises(InvalidSpecification):
-        FlaskApi(pathlib.Path(f.name), base_path="/api/v1.0")
-    os.unlink(f.name)
+        with tempfile.NamedTemporaryFile() as f:
+            f.write('[1]\n'.encode())
+            f.flush()
+            FlaskApi(pathlib.Path(f.name), base_path="/api/v1.0")
+
 
 @pytest.fixture
 def mock_api_logger(monkeypatch):

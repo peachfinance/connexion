@@ -1,6 +1,6 @@
 import pytest
 from jsonschema import ValidationError
-from unittest.mock import MagicMock
+from mock import MagicMock
 
 from connexion.decorators.validation import ParameterValidator
 from connexion.json_schema import (Draft4RequestValidator,
@@ -40,21 +40,6 @@ def test_get_nullable_parameter():
     param = {'schema': {'type': 'number', 'nullable': True},
              'required': True, 'name': 'foo'}
     result = ParameterValidator.validate_parameter('query', 'null', param)
-    assert result is None
-
-
-def test_get_explodable_object_parameter():
-    param = {'schema': {'type': 'object', 'additionalProperties': True},
-             'required': True, 'name': 'foo', 'style': 'deepObject', 'explode': True}
-    result = ParameterValidator.validate_parameter('query', {'bar': 1}, param)
-    assert result is None
-    
-    
-def test_get_valid_parameter_with_enum_array_header():
-    value = 'VALUE1,VALUE2'
-    param = {'schema': {'type': 'array', 'items': {'type': 'string', 'enum': ['VALUE1', 'VALUE2']}},
-             'name': 'test_header_param'}
-    result = ParameterValidator.validate_parameter('header', value, param)
     assert result is None
 
 

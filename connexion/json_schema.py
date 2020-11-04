@@ -1,3 +1,4 @@
+import collections
 from copy import deepcopy
 
 from jsonschema import Draft4Validator, RefResolver, _utils
@@ -8,11 +9,6 @@ from .openapi_spec_validator.handlers import UrlHandler
 from .utils import deep_get
 
 import os.path
-try:
-    from collections.abc import Mapping
-except ImportError:
-    from collections import Mapping
-
 
 default_handlers = {
     'http': UrlHandler('http'),
@@ -53,7 +49,7 @@ def resolve_refs(spec, store=None, external_refs={}, handlers=None, base_uri='')
                         external_refs[name] = str(resolver.store[full_uri])
                     _do_resolve(resolved)
                     return resolved
-        elif isinstance(node, Mapping):
+        elif isinstance(node, collections.Mapping):
             for k, v in node.items():
                 node[k] = _do_resolve(v)
         elif isinstance(node, (list, tuple)):

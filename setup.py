@@ -22,22 +22,26 @@ version = read_version('connexion')
 
 install_requires = [
     'clickclick>=1.2',
-    'jsonschema>=2.5.1',
+    'jsonschema>=2.5.1,<3.0.0',
     'PyYAML>=5.1',
     'requests>=2.9.1',
+    'six>=1.9',
     'inflection>=0.3.1',
-    'openapi-spec-validator>=0.2.4',
+    'pathlib>=1.0.1; python_version < "3.4"',
+    'typing>=3.6.1; python_version < "3.6"',
 ]
 
 swagger_ui_require = 'swagger-ui-bundle>=0.0.2'
 flask_require = 'flask>=1.0.4'
 aiohttp_require = [
-    'aiohttp>=2.3.10',
+    'aiohttp>=2.3.10,<3.5.2',
     'aiohttp-jinja2>=0.14.0'
 ]
+ujson_require = 'ujson>=1.35'
 
 tests_require = [
     'decorator',
+    'mock',
     'pytest',
     'pytest-cov',
     'testfixtures',
@@ -45,9 +49,10 @@ tests_require = [
     swagger_ui_require
 ]
 
-tests_require.extend(aiohttp_require)
-tests_require.append('pytest-aiohttp')
-tests_require.append('aiohttp-remotes')
+if sys.version_info[0] >= 3:
+    tests_require.extend(aiohttp_require)
+    tests_require.append(ujson_require)
+    tests_require.append('pytest-aiohttp')
 
 
 class PyTest(TestCommand):
@@ -57,8 +62,14 @@ class PyTest(TestCommand):
     def initialize_options(self):
         TestCommand.initialize_options(self)
         self.cov = None
-        self.pytest_args = ['--cov', 'connexion', '--cov-report', 'term-missing',
-                            '--cov-config=py3-coveragerc', '-v']
+        self.pytest_args = ['--cov', 'connexion', '--cov-report', 'term-missing', '-v']
+
+        if sys.version_info[0] < 3:
+            self.pytest_args.append('--cov-config=py2-coveragerc')
+            self.pytest_args.append('--ignore=tests/aiohttp')
+        else:
+            self.pytest_args.append('--cov-config=py3-coveragerc')
+
         self.cov_html = False
 
     def finalize_options(self):
@@ -92,22 +103,23 @@ setup(
     keywords='openapi oai swagger rest api oauth flask microservice framework',
     license='Apache License Version 2.0',
     setup_requires=['flake8'],
-    python_requires=">=3.6",
     install_requires=install_requires + [flask_require],
     tests_require=tests_require,
     extras_require={
         'tests': tests_require,
         'flask': flask_require,
         'swagger-ui': swagger_ui_require,
-        'aiohttp': aiohttp_require
+        'aiohttp': aiohttp_require,
+        'ujson': ujson_require
     },
     cmdclass={'test': PyTest},
     test_suite='tests',
     classifiers=[
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Operating System :: OS Independent',

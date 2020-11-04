@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-import datetime
-import uuid
-
+import flask
 from flask import jsonify, redirect
 
-from connexion import NoContent, ProblemException, context, request
+from connexion import NoContent, ProblemException, context, problem
 
 
 class DummyClass(object):
@@ -94,19 +92,19 @@ def get_bye_secure_jwt(name, user, token_info):
     return 'Goodbye {name} (Secure: {user})'.format(name=name, user=user)
 
 def with_problem():
-    raise ProblemException(type='http://www.example.com/error',
-                           title='Some Error',
-                           detail='Something went wrong somewhere',
-                           status=418,
-                           instance='instance1',
-                           headers={'x-Test-Header': 'In Test'})
+    return problem(type='http://www.example.com/error',
+                   title='Some Error',
+                   detail='Something went wrong somewhere',
+                   status=418,
+                   instance='instance1',
+                   headers={'x-Test-Header': 'In Test'})
 
 
 def with_problem_txt():
-    raise ProblemException(title='Some Error',
-                           detail='Something went wrong somewhere',
-                           status=418,
-                           instance='instance1')
+    return problem(title='Some Error',
+                   detail='Something went wrong somewhere',
+                   status=418,
+                   instance='instance1')
 
 
 def internal_error():
@@ -131,11 +129,6 @@ def empty():
 
 def schema(new_stack):
     return new_stack
-
-
-def forward(body):
-    """Return a response with the same payload as in the request body."""
-    return body
 
 
 def schema_response_object(valid):
@@ -218,10 +211,6 @@ def test_required_query_param():
     return ''
 
 
-def test_apikey_query_parameter_validation():
-    return ''
-
-
 def test_array_csv_query_param(items):
     return items
 
@@ -281,8 +270,6 @@ def test_default_param(name):
 def test_default_object_body(stack):
     return {"stack": stack}
 
-def test_nested_additional_properties(body):
-    return body
 
 def test_default_integer_body(stack_version):
     return stack_version
@@ -329,18 +316,6 @@ def test_bool_array_param(thruthiness=None):
 
 def test_required_param(simple):
     return simple
-
-
-def test_exploded_deep_object_param(id):
-    return id
-
-
-def test_nested_exploded_deep_object_param(id):
-    return id
-
-
-def test_exploded_deep_object_param_additional_properties(id):
-    return id
 
 
 def test_redirect_endpoint():
@@ -429,8 +404,8 @@ def get_empty_dict():
 
 
 def get_custom_problem_response():
-    raise ProblemException(403, "You need to pay", "Missing amount",
-                           ext={'amount': 23.0})
+    return problem(403, "You need to pay", "Missing amount",
+                   ext={'amount': 23.0})
 
 
 def throw_problem_exception():
@@ -447,14 +422,6 @@ def unordered_params_response(first, path_param, second):
 
 def more_than_one_scope_defined(**kwargs):
     return "OK"
-
-
-def optional_auth(**kwargs):
-    key = apikey_info(request.headers.get('X-AUTH'))
-    if key is None:
-        return "Unauthenticated"
-    else:
-        return "Authenticated"
 
 
 def test_args_kwargs(*args, **kwargs):
@@ -541,12 +508,6 @@ def post_user(body):
     body.pop('password', None)
     return body
 
-def post_multipart_form(body):
-    x = body['x']
-    x['name'] += "-reply"
-    x['age'] += 10
-    return x
-
 
 def apikey_info(apikey, required_scopes=None):
     if apikey == 'mykey':
@@ -590,15 +551,3 @@ def patch_add_operation_on_http_methods_only():
 
 def trace_add_operation_on_http_methods_only():
     return ""
-
-
-def get_datetime():
-    return {'value': datetime.datetime(2000, 1, 2, 3, 4, 5, 6)}
-
-
-def get_date():
-    return {'value': datetime.date(2000, 1, 2)}
-
-
-def get_uuid():
-    return {'value': uuid.UUID(hex='e7ff66d0-3ec2-4c4e-bed0-6e4723c24c51')}

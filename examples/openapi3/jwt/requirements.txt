@@ -1,7 +1,4 @@
-# Install swagger-ui before connexion.
-connexion[swagger-ui]
-
-connexion>=2.2.0
+connexion>=2.0.0rc3
 python-jose[cryptography]
 six>=1.9
 Flask>=0.10.1
