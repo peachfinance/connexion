@@ -183,14 +183,13 @@ class RequestBodyValidator(object):
             self.validator.validate(data)
         except ValidationError as exception:
             error_path = '.'.join(str(item) for item in exception.path)
-            error_path_msg = " - '{path}'".format(path=error_path) if error_path else ""
-            logger.error(
-                "{url} validation error: {error}{error_path_msg}".format(
-                    url=url, error=exception.message,
-                    error_path_msg=error_path_msg),
-                extra={'validator': 'body'})
-            return problem(400, 'Bad Request', str(exception.message))
+            if not error_path:
+                error_path = '.'.join(str(item) for item in exception.schema_path)
 
+            error_path_msg = f" at '{error_path or ''}'"
+            error_message = f"Validation error{error_path_msg}: {exception.message}"
+            logger.error(f"{url}: {error_message}", extra={'validator': 'body'})
+            return problem(400, 'Bad Request', str(error_message))
         return None
 
 
