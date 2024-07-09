@@ -12,3 +12,4 @@ testfixtures>=5.3.0
 #-e svn+http://svn.pyyaml.org/pyyaml/trunk#egg=PyYAML
 # six is causing errors during the tests
 #-e git+https://github.com/benjaminp/six.git#egg=six
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
